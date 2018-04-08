@@ -1,15 +1,16 @@
 #include<unistd.h>
 #include<stdio.h>
 #include<stdlib.h>
-int n,i,j;
-int q1=0,q2=0,q3=0;
-struct processs
+int n,i,j;																// n is total nnumber of processes, i and j are counters in loop
+int q1=0,q2=0,q3=0;														// q1,q2,q3 are total number of processes in each queue(initialised to 0)
+struct processs															//structure to hold the attribues of process
 {
-	int pid;
-	int burst_time;
-	int arrival_time;
-	int priority;
-}*p_array,*queue_one, *queue_two, *queue_thr;
+	int pid;															//process_id
+	int burst_time;														//burst time of processes
+	int arrival_time;													//arrival time of processes
+	int priority;														//priority of processes
+}*p_array,*queue_one, *queue_two, *queue_thr;							//*p_array is for containing total 'n' processes along with pid, burst_time,arrival_time,priority
+                                                                        //*queue_one,*queue_two,*queue_thr are to store processes based on priority
 
 //******************************************************************************************************
 void pid_assign();														//function to assign process id
@@ -21,7 +22,7 @@ void display(struct processs *pp_array,int k);							//function to display all p
 //------------------------------------------------------------------------------------------------------
 void queue_size();														//function to determine the size of each queue
 void queue_assign();													//function for assigning queue
-void sort_queue(struct processs *pp_array,int k);						//sorts the processes based on arrival time
+void sort_queue(struct processs *pp_array,int k);						//sorts the processes based on priority time
 //------------------------------------------------------------------------------------------------------
 void scheduling();														//function to schedule the processes
 void pop(struct processs *ready,int r);									//function to pop processes from ready queue
@@ -31,16 +32,24 @@ void push(struct processs *ready,struct processs tempp,int r);			//function to p
 //**************************************MAIN************************************************************
 int main()
 {
-	system("cls");	
-
-	printf("\nNumber of Processes : ");scanf("%d",&n);					//asking for number of processes
+	int process_flag=0;													//if wrong value is entered by user process_flag changes to 1 and error message is displayed
+	do
+	{
+		system("clear");
+		if(process_flag==1)
+		printf("\nEnter a number > 0 \n");
+		printf("\nNumber of Processes : ");
+		scanf("%d",&n);													//asking for number of processes
+		if(n<=0)
+		process_flag=1;													//changing process_flag value to 1
+	}while(n<=0);
 	p_array=(struct processs*)calloc(n,sizeof(struct processs));		//allocating number of processes
 	
 	pid_assign();														//asking PID
 	burst_assign();														//asking BURST_TIME
 	arrival_assign();													//asking ARRIVAL_TIME
 	priority_assign();													//asking PRIORITY
-	system("cls");
+	system("clear");
 	printf("\nNumber of Processes : %d",n);
 	display(p_array,n);													//displaying PROCESSES along with BURST TIME and ARRIVAL TIME and PRIORITY
 
@@ -50,32 +59,31 @@ int main()
 	queue_thr=(struct processs*)calloc(q3,sizeof(struct processs));		//allocating memory to queue_thr
 	queue_assign();														//assigning processes to respective queue
 	
-	printf("\nDividing processes on basis of PRIORITY...");
+	printf("\nDividing processes on basis of PRIORITY.");
+	printf("\n\t\t\t\t\t\t\t\t\t\t\t\t\tPress ENTER to continue...");
+	getchar();
+	getchar();
 	printf("\n\nPRIORITY\t\tQUEUE\n");
 	printf(" [1,3]\t\t\t Q1\n [4,7]\t\t\t Q2\n[8, 10]\t\t\t Q3\n");
 	
 	printf("\nThe generated QUEUES are :");
 	printf("\n\nQUEUE 1 : (%d processes)\n",q1);
-	display(queue_one,q1);
+	display(queue_one,q1);												//displaying processes in queue_one
 	printf("\n\nQUEUE 2 : (%d processes)\n",q2);
-	display(queue_two,q2);
+	display(queue_two,q2);												//displaying processes in queue_two
 	printf("\n\nQUEUE 3 : (%d processes)\n",q3);
-	display(queue_thr,q3);
+	display(queue_thr,q3);												//displaying processes in queue_thr
 	
-	/*
-	sort_arrival(queue_one,q1);											//sorting queue_one based on arrival time
-	sort_arrival(queue_two,q2);											//sorting queue_two based on arrival time
-	sort_arrival(queue_thr,q3);											//sorting queue_thr based on arrival time
-	*/
-	
-	printf("\n\nScheduling :\n\n\t  TIME\t\t\tPROCESS\n");				//sheduling queue_one,queue_two,queue_thr
+	printf("\n\t\t\t\t\t\t\t\t\t\t\t\t\tPRESS ANY KEY TO SCHEDULE PROCESSES...\n");
+	getchar();
+	printf("\n\nScheduling :\n\n\t  TIME\t\t\tPROCESS\n");
 	printf(" ___________________________________________\n");
-	scheduling();
+	scheduling();														//this function will schedule the processes and will print the gantt chart
 }
 //******************************************************************************************************
 void pid_assign()
 {
-	system("cls");
+	system("clear");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
 	printf("\nEnter the PID :\n\n\tPROCESS_ID\n\n");
@@ -102,7 +110,7 @@ void pid_assign()
 //******************************************************************************************************
 void burst_assign()
 {
-	system("cls");
+	system("clear");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
 	printf("\nEnter the BURST_TIME :\n\n\tPROCESS_ID\t\tBURST_TIME\n\n");
@@ -120,7 +128,7 @@ void burst_assign()
 //******************************************************************************************************
 void arrival_assign()
 {
-	system("cls");
+	system("clear");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
 	printf("\nEnter the ARRIVAL_TIME :\n\n\tPROCESS_ID\t\tBURST_TIME\t\tARRIVAL_TIME\n\n");
@@ -138,7 +146,7 @@ void arrival_assign()
 //******************************************************************************************************
 void priority_assign()
 {
-	system("cls");
+	system("clear");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
 	printf("\nEnter the associated PRIORITY[1-10]:\n\n\tPROCESS_ID\t\tBURST_TIME\t\tARRIVAL_TIME\t\tPRIORITY\n\n");
