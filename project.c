@@ -1,7 +1,7 @@
 #include<unistd.h>
 #include<stdio.h>
 #include<stdlib.h>
-int n,i;
+int n,i,j;
 int q1=0,q2=0,q3=0;
 struct processs
 {
@@ -9,17 +9,23 @@ struct processs
 	int burst_time;
 	int arrival_time;
 	int priority;
-}*p_array,*queue_one, *queue_two, *queue_three;
+}*p_array,*queue_one, *queue_two, *queue_thr;
+
 //******************************************************************************************************
-void pid_assign(struct processs *pp_array);			//function to assign process id
-void burst_assign(struct processs *pp_array);		//function to assign burst time
-void arrival_assign(struct processs *pp_array);		//function to assign arrival time
-void priority_assign(struct processs *pp_array);	//function to assign priority
-void display(struct processs *pp_array,int k);		//function to display all processes
-void queue_size(struct processs *pp_array);			//function to determine the size of each queue
-void queue_assign(struct processs *pp_array);		//function for assigning queue
+void pid_assign(struct processs *pp_array);				//function to assign process id
+void burst_assign(struct processs *pp_array);			//function to assign burst time
+void arrival_assign(struct processs *pp_array);			//function to assign arrival time
+void priority_assign(struct processs *pp_array);		//function to assign priority
+//------------------------------------------------------------------------------------------------------
+void display(struct processs *pp_array,int k);			//function to display all processes
+//------------------------------------------------------------------------------------------------------
+void queue_size(struct processs *pp_array);				//function to determine the size of each queue
+void queue_assign(struct processs *pp_array);			//function for assigning queue
+void sort_arrival(struct processs *pp_array,int k);		//sorts the processes based on arrival time
+//------------------------------------------------------------------------------------------------------
 void sheduling(struct processs *queue_1, struct processs *queue_2, struct processs *queue_3); //function to schedule the processes
 //******************************************************************************************************
+
 //**************************************MAIN************************************************************
 int main()
 {
@@ -27,6 +33,7 @@ int main()
 
 	printf("\nNumber of Processes : ");scanf("%d",&n);					//asking for number of processes
 	p_array=(struct processs*)calloc(n,sizeof(struct processs));		//allocating number of processes
+	
 	pid_assign(p_array);												//asking PID
 	burst_assign(p_array);												//asking BURST_TIME
 	arrival_assign(p_array);											//asking ARRIVAL_TIME
@@ -38,17 +45,26 @@ int main()
 	queue_size(p_array);												//determining size of each queue q1,q2,q3
 	queue_one=(struct processs*)calloc(q1,sizeof(struct processs));		//allocating memory to queue_one
 	queue_two=(struct processs*)calloc(q2,sizeof(struct processs));		//allocating memory to queue_two
-	queue_three=(struct processs*)calloc(q3,sizeof(struct processs));	//allocating memory to queue_three
+	queue_thr=(struct processs*)calloc(q3,sizeof(struct processs));		//allocating memory to queue_thr
 	queue_assign(p_array);												//assigning processes to respective queue
-	printf("\nDividing processes on basis of PRIORITY.\n\nPRIORITY\t\tQUEUE\n [1,3]\t\t\t Q1\n [4,7]\t\t\t Q2\n[8, 10]\t\t\t Q3\n");
-	printf("\nThe generated QUEUES are :\nQUEUE 1 : (%d pocesses)\n",q1);
+	
+	printf("\nDividing processes on basis of PRIORITY...");
+	printf("\n\nPRIORITY\t\tQUEUE\n");
+	printf(" [1,3]\t\t\t Q1\n [4,7]\t\t\t Q2\n[8, 10]\t\t\t Q3\n");
+	
+	printf("\nThe generated QUEUES are :");
+	printf("\n\nQUEUE 1 : (%d processes)\n",q1);
 	display(queue_one,q1);
 	printf("\n\nQUEUE 2 : (%d processes)\n",q2);
 	display(queue_two,q2);
 	printf("\n\nQUEUE 3 : (%d processes)\n",q3);
-	display(queue_three,q3);
-	printf("\n\nScheduling :\n\n");
-	//sheduling(queue_one,queue_two,queue_three);
+	display(queue_thr,q3);
+	
+	sort_arrival(queue_one,q1);											//sorting queue_one based on arrival time
+	sort_arrival(queue_two,q2);											//sorting queue_two based on arrival time
+	sort_arrival(queue_thr,q3);											//sorting quueue_thr based on arrival time
+		
+	printf("\n\nScheduling :\n\n");										//sheduling(queue_one,queue_two,queue_thr);
 
 }
 //******************************************************************************************************
@@ -57,16 +73,25 @@ void pid_assign(struct processs *pp_array)
 	system("cls");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
-	printf("\nEnter the PID :\n\n\tPROCESS_ID\n");
+	printf("\nEnter the PID :\n\n\tPROCESS_ID\n\n");
+	int flag;
 	for(i=0;i<n;i++)
 	{
 		do
 		{
+			flag=0;
 			printf("\t   ");
 			scanf("%d",&((pp_array+i)->pid));
+			
+			for(j=0;j<i;j++)
+			if(((pp_array+i)->pid)==((pp_array+j)->pid))
+			{
+				printf("\t\t\t\t\tPID already exists!! Enter Again... \n");
+				flag=1;
+			}
 			if(((pp_array+i)->pid)<=0)
 			printf("\t\t\t\t\tPID can not be <=0 !!Enter Again...\n");
-		}while(((pp_array+i)->pid)<=0);
+		}while((((pp_array+i)->pid)<=0)||(flag==1));
 	}
 }
 //******************************************************************************************************
@@ -75,7 +100,7 @@ void burst_assign(struct processs *pp_array)
 	system("cls");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
-	printf("\nEnter the BURST_TIME :\n\n\tPROCESS_ID\tBURST_TIME\n");
+	printf("\nEnter the BURST_TIME :\n\n\tPROCESS_ID\tBURST_TIME\n\n");
 	for(i=0;i<n;i++)
 	{
 		do
@@ -93,7 +118,7 @@ void arrival_assign(struct processs *pp_array)
 	system("cls");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
-	printf("\nEnter the ARRIVAL_TIME :\n\n\tPROCESS_ID\tBURST_TIME\tARRIVAL_TIME\n");
+	printf("\nEnter the ARRIVAL_TIME :\n\n\tPROCESS_ID\tBURST_TIME\tARRIVAL_TIME\n\n");
 	for(i=0;i<n;i++)
 	{
 		do
@@ -111,7 +136,7 @@ void priority_assign(struct processs *pp_array)
 	system("cls");
 	printf("\nNumber of Processes : %d",n);
 	printf("\n\t\t\t\t\tINPUT ONLY INTEGER VALUES !!!\n");
-	printf("\nEnter the associated PRIORITY[1-10]:\n\n\tPROCESS_ID\tBURST_TIME\tARRIVAL_TIME\tPRIORITY\n");
+	printf("\nEnter the associated PRIORITY[1-10]:\n\n\tPROCESS_ID\tBURST_TIME\tARRIVAL_TIME\tPRIORITY\n\n");
 	for(i=0;i<n;i++)
 	{
 		do
@@ -163,8 +188,22 @@ void queue_assign(struct processs *pp_array)
 		else
 		{
 			j3++;
-			*((queue_three+j3))=*((pp_array+i));
+			*((queue_thr+j3))=*((pp_array+i));
 		}
+	}
+}
+//******************************************************************************************************
+void sort_arrival(struct processs *pp_array,int k)
+{
+	struct processs temp;
+	
+	for(i=0;i<k;i++)
+	for(j=0;j<(k-1-i);j++)
+	if(((pp_array+j)->arrival_time)>((pp_array+(j+1))->arrival_time))
+	{
+		temp=*(pp_array+j);
+		*(pp_array+j)=*(pp_array+(j+1));
+		*(pp_array+(j+1))=temp;
 	}	
 }
 //******************************************************************************************************
