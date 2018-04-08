@@ -21,7 +21,7 @@ void display(struct processs *pp_array,int k);							//function to display all p
 //------------------------------------------------------------------------------------------------------
 void queue_size();														//function to determine the size of each queue
 void queue_assign();													//function for assigning queue
-//void sort_arrival(struct processs *pp_array,int k);					//sorts the processes based on arrival time
+void sort_queue(struct processs *pp_array,int k);						//sorts the processes based on arrival time
 //------------------------------------------------------------------------------------------------------
 void scheduling();														//function to schedule the processes
 void pop(struct processs *ready,int r);									//function to pop processes from ready queue
@@ -68,7 +68,8 @@ int main()
 	sort_arrival(queue_thr,q3);											//sorting queue_thr based on arrival time
 	*/
 	
-	printf("\n\nScheduling :\n\nTIME\t\tPROCESS\n");					//sheduling queue_one,queue_two,queue_thr
+	printf("\n\nScheduling :\n\n\t  TIME\t\t\tPROCESS\n");				//sheduling queue_one,queue_two,queue_thr
+	printf(" ___________________________________________\n");
 	scheduling();
 }
 //******************************************************************************************************
@@ -197,21 +198,19 @@ void queue_assign()
 	}
 }
 //******************************************************************************************************
-/*
-void sort_arrival(struct processs *pp_array,int k)
+void sort_queue(struct processs *pp_array,int k)
 {
 	struct processs temp;
 	
 	for(i=0;i<k;i++)
 	for(j=0;j<(k-1-i);j++)
-	if(((pp_array+j)->arrival_time)>((pp_array+(j+1))->arrival_time))
+	if(((pp_array+j)->priority)>((pp_array+(j+1))->priority))
 	{
 		temp=*(pp_array+j);
 		*(pp_array+j)=*(pp_array+(j+1));
 		*(pp_array+(j+1))=temp;
 	}
 }
-*/
 //******************************************************************************************************
 void pop(struct processs *ready,int r)
 {
@@ -229,96 +228,191 @@ void push(struct processs *ready,struct processs tempp,int r)
 void scheduling()
 {
 	int turn=1,time_count=-1;
-	int r1=-1,r2=-1,r3=-1;												//these are for count of ready_q1,ready_q2,ready_q3
+	int r1=-1,r2=-1,r3=-1;													//these are for count of ready_q1,ready_q2,ready_q3
+	int qq1=q1,qq2=q2,qq3=q3;
 	struct processs *ready_q1,*ready_q2,*ready_q3,temp;
 	
-	ready_q1=(struct processs*)calloc(q1,sizeof(struct processs));		//allocating memory to queue_one
-	ready_q2=(struct processs*)calloc(q2,sizeof(struct processs));		//allocating memory to queue_two
-	ready_q3=(struct processs*)calloc(q3,sizeof(struct processs));		//allocating memory to queue_thr
-
+	ready_q1=(struct processs*)calloc(q1+1,sizeof(struct processs));		//allocating memory to queue_one
+	ready_q2=(struct processs*)calloc(q2+1,sizeof(struct processs));		//allocating memory to queue_two
+	ready_q3=(struct processs*)calloc(q3+1,sizeof(struct processs));		//allocating memory to queue_thr
+	
 	do
 	{
 		if(turn==1)
 		{
 			int time_quantum=0;
-			for(i=0;i<=100;i++)
+			for(i=0;i<=10;i++)
 			{
-				time_count++;
-				for(j=0;j<q1;j++)
-				if(((queue_one+j)->arrival_time)==time_count)
+				if(qq1==0)
 				{
-					r1++;
-					*(ready_q1+r1)=*(queue_one+j);
-				}
-				for(j=0;j<q2;j++)
-				if(((queue_two+j)->arrival_time)==time_count)
-				{
-					r2++;
-					*(ready_q2+r2)=*(queue_two+j);
-				}
-				for(j=0;j<q3;j++)
-				if(((queue_thr+j)->arrival_time)==time_count)
-				{
-					r3++;
-					*(ready_q3+r3)=*(queue_thr+j);
-				}
-				printf("\n     %d-%d     ",time_count,time_count+1);
-				if(((ready_q1+0)->pid)!=0)											//if ready queue is not empty
-				{
-					printf("\t     %d\n",((ready_q1+0)->pid));
-					(ready_q1+0)->burst_time--;
-					time_quantum++;
-					if(((ready_q1+0)->burst_time)==0)								//three cases arise
-					{																//1. burst_time < time_quantum
-						pop(ready_q1,r1);											//2. burst_time = time_quantum
-						r1--;														//3. burst_time > time_quantum
-						time_quantum=0;
-					}
-					if(time_quantum==4)
-					{
-						temp=*(ready_q1+0);
-						pop(ready_q1,r1);
-						push(ready_q1,temp,r1);
-						time_quantum=0;
-					}
+					turn=2;
+					break;
 				}
 				else
-				printf("\n");
-				if((time_count+1)%100==0)
-				{
-					printf("\nTurn 2.");
-					turn==2;
-					exit(0);
-				}
-			}
-		}/*
-		if(turn==1)
-		{
-			for(i=0;i<10;i++)
-			{ 
-				time_count++;
-				printf("%d ",time_count);
-				if(time_count%10==0)
-				{
-					turn==3;
-					printf("\nQueue 2 done. Next turn is Queue 3.\n");
-					break;
+				{	
+					time_count++;
+					{
+						for(j=0;j<q1;j++)
+						if(((queue_one+j)->arrival_time)==time_count)
+						{
+							r1++;
+							*(ready_q1+r1)=*(queue_one+j);
+						}
+						for(j=0;j<q2;j++)
+						if(((queue_two+j)->arrival_time)==time_count)
+						{
+							r2++;
+							*(ready_q2+r2)=*(queue_two+j);
+						}
+						for(j=0;j<q3;j++)
+						if(((queue_thr+j)->arrival_time)==time_count)
+						{
+							r3++;
+							*(ready_q3+r3)=*(queue_thr+j);
+						}
+					}
+					printf("\t   %d-%d     ",time_count,time_count+1);
+					
+					if(((ready_q1+0)->pid)!=0)											//if ready queue is not empty
+					{
+						printf("\t         %d\n",((ready_q1+0)->pid));
+						(ready_q1+0)->burst_time--;
+						time_quantum++;
+						if(((ready_q1+0)->burst_time)==0)								//three cases arise
+						{																//1. burst_time < time_quantum
+							pop(ready_q1,r1+1);											//2. burst_time = time_quantum
+							r1--;														//3. burst_time > time_quantum
+							qq1--;
+							time_quantum=0;
+						}
+						if(time_quantum==4)
+						{
+							temp=*(ready_q1+0);
+							pop(ready_q1,r1+1);
+							push(ready_q1,temp,r1);
+						time_quantum=0;
+						}
+					}
+					else
+					printf("\t\tIDLE\n");
+					if((time_count+1)%10==0)
+					{
+						turn=2;
+						break;
+					}
 				}
 			}
 		}
-		if(turn==1)
-		{
-			for(i=0;i<10;i++)
+		if(turn==2)
+		{	
+			for(i=0;i<=10;i++)
 			{
-				time_count++;
-				printf("%d ",time_count);
-				if(time_count%10==0)
+				if(qq2==0)
 				{
-					turn==1;
-					printf("\nQueue 3 done. Next turn is Queue 1.\n");
+					turn=3;
 					break;
 				}
+				else
+				{
+					time_count++;
+					{
+						for(j=0;j<q1;j++)
+						if(((queue_one+j)->arrival_time)==time_count)
+						{
+							r1++;
+							*(ready_q1+r1)=*(queue_one+j);
+						}
+						for(j=0;j<q2;j++)
+						if(((queue_two+j)->arrival_time)==time_count)
+						{
+							r2++;
+							*(ready_q2+r2)=*(queue_two+j);
+						}
+						for(j=0;j<q3;j++)
+						if(((queue_thr+j)->arrival_time)==time_count)
+						{
+							r3++;
+							*(ready_q3+r3)=*(queue_thr+j);
+						}
+					}
+					printf("\t   %d-%d     ",time_count,time_count+1);
+					
+					if(((ready_q2+0)->pid)!=0)											//if ready queue is not empty
+					{
+						sort_queue(ready_q2,r2+1);
+						printf("\t         %d\n",((ready_q2+0)->pid));
+						(ready_q2+0)->burst_time--;
+						if(((ready_q2+0)->burst_time)==0)
+						{
+							pop(ready_q2,r2+1);
+							r2--;
+							qq2--;
+						}
+					}
+					else
+					printf("\t\tIDLE\n");
+					if((time_count+1)%10==0)
+					{
+						turn=3;
+						break;
+					}
+				}
 			}
-		}*/
-	}while(1);
+		}
+		if(turn==3)
+		{
+			for(i=0;i<=10;i++)
+			{
+				if(qq3==0)
+				{
+					turn=1;
+					break;
+				}
+				else
+				{
+					time_count++;
+					{
+						for(j=0;j<q1;j++)
+						if(((queue_one+j)->arrival_time)==time_count)
+						{
+							r1++;
+							*(ready_q1+r1)=*(queue_one+j);
+						}
+						for(j=0;j<q2;j++)
+						if(((queue_two+j)->arrival_time)==time_count)
+						{
+							r2++;
+							*(ready_q2+r2)=*(queue_two+j);
+						}
+						for(j=0;j<q3;j++)
+						if(((queue_thr+j)->arrival_time)==time_count)
+						{
+							r3++;
+							*(ready_q3+r3)=*(queue_thr+j);
+						}
+					}
+					printf("\t   %d-%d     ",time_count,time_count+1);
+					
+					if(((ready_q3+0)->pid)!=0)
+					{
+						printf("\t         %d\n",((ready_q3+0)->pid));
+						(ready_q3+0)->burst_time--;
+						if(((ready_q3+0)->burst_time)==0)
+						{
+							pop(ready_q3,r3+1);
+							r3--;
+							qq3--;
+						}
+					}
+					else
+					printf("\t\tIDLE\n");
+					if((time_count+1)%10==0)
+					{
+						turn=1;
+						break;
+					}
+				}
+			}
+		}
+	}while((qq1>0)||(qq2>0)||(qq3>0));
 }
