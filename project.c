@@ -30,6 +30,7 @@ void arrival_assign();												//function to assign arrival time
 void priority_assign();												//function to assign priority
 //------------------------------------------------------------------------------------------------------
 void display(struct processs *pp_array,int k);						//function to display all processes
+void display_waiting_time(struct processs *pp_array,int k);			//function to display waiting time of each process
 //------------------------------------------------------------------------------------------------------
 void queue_size();													//function to determine the size of each queue
 void queue_assign();												//function for assigning queue
@@ -39,6 +40,7 @@ void ready_queue();													//function to add processes in respective ready 
 void round_robin();													//function for round robin scheduing in queue_one
 void priority_scheduling();											//function for priority scheduling in queue_two
 void first_come_first_serve();										//function for first_come_first_serve scheduling in queue_thr
+void wait_time();													//function to claculate waiting time of processes
 void scheduling();													//function to schedule the processes
 void pop(struct processs *ready,int r);								//function to pop processes from ready queue
 void push(struct processs *ready,struct processs tempp,int r);		//function to push processes in ready queue
@@ -94,6 +96,10 @@ int main()
 	printf(" ___________________________________________\n");
 	scheduling();													//TO schedule the processes, print gantt chart
 	getchar();
+	printf("\n\t\t\t\t\t\t\t\t\t\t\t\t\tPress ENTER to display waiting time...\n");
+	display_waiting_time(queue_one,q1);
+	display_waiting_time(queue_two,q2);
+	display_waiting_time(queue_thr,q3);
 }
 //******************************************************************************************************
 void heading()
@@ -199,6 +205,14 @@ void display(struct processs *pp_array,int k)
 	printf("\n");
 }
 //******************************************************************************************************
+void display_waiting_time(struct processs *pp_array,int k)
+{
+	printf("\n\tPROCESS_ID\t\tWAITING_TIME\n");
+	for(i=0;i<k;i++)
+	printf("\n\t     %d     \t\t     %d     ",((pp_array+i)->pid),((pp_array+i)->waiting_time));
+	printf("\n");
+}
+//******************************************************************************************************
 void queue_size()
 {
 	for(i=0;i<n;i++)
@@ -262,6 +276,31 @@ void push(struct processs *ready,struct processs tempp,int r)
 	*(ready+r)=tempp;												//adding the temp value to last index of array
 }
 //******************************************************************************************************
+void wait_time()
+{
+	for(i=0;i<q1;i++)
+	for(j=0;j<=r1;j++)
+	{
+		if(((queue_one+i)->pid)==((ready_q1+j)->pid))
+		if(j!=0)
+		(queue_one+i)->waiting_time++;
+	}
+	for(i=0;i<q2;i++)
+	for(j=0;j<=r2;j++)
+	{
+		if(((queue_two+i)->pid)==((ready_q2+j)->pid))
+		if((j!=0))
+		(queue_two+i)->waiting_time++;
+	}
+	for(i=0;i<q3;i++)
+	for(j=0;j<=r3;j++)
+	{
+		if(((queue_thr+i)->pid)==((ready_q3+j)->pid))
+		if(j!=0)
+		(queue_thr+i)->waiting_time++;
+	}
+}
+//******************************************************************************************************
 void ready_queue()
 {
 	for(j=0;j<q1;j++)											//checking if any process arrives at this time_count in queue_one
@@ -291,16 +330,16 @@ void round_robin()
 	for(j=0;j<q1;j++)											//within time_quantum of queue_one or not
 	{
 		if((((queue_one+j)->arrival_time)>=(temp_tc))&&((((queue_one+j)->arrival_time)<(temp_tc+10))))
-		in_ten_qt++;
+		in_ten_qt++;											//if any process will come in current time quantum, value increases
 		if(qq1==0)
-		in_ten_qt=1;
+		in_ten_qt=1;											//if all processes are processed so that idle is not printed 
 	}
 	int time_quantum=0;											//queue_one undergoes Round Robin, this is for counting time quantum
 	for(i=0;i<=10;i++)											// each queue has time quantum of 10 seconds
 	{
 		if(qq1==0 || in_ten_qt==0)								//checking if processes are left in ready_q1 or not, or...
 		{														//if a process will come in ready_q1 within 10 time_quantum
-			if((ready_q1+0)->pid==0)
+			if((ready_q1+0)->pid==0)							//
 			{	turn=2;											//if no process is left then switch the turn to queue_two
 				break;													
 			}
@@ -313,6 +352,7 @@ void round_robin()
 			
 			if(((ready_q1+0)->pid)!=0)							//if ready queue is not empty
 			{
+				wait_time();
 				printf("\t         %d",((ready_q1+0)->pid));	//displaying the current process being processed for the above time interval
 				(ready_q1+0)->burst_time--;						//decrementing the value of burst_time after of current process 
 				time_quantum++;									//incrementing the value of time_quantum, since it is round robin scheduling
@@ -349,9 +389,9 @@ void priority_scheduling()
 	for(j=0;j<q2;j++)											//within time_quantum of queue_two or not
 	{
 		if((((queue_two+j)->arrival_time)>=(temp_tc))&&((((queue_two+j)->arrival_time)<(temp_tc+10))))
-		in_ten_qt++;
+		in_ten_qt++;											//if any process will come in current time quantum, value increases
 		if(qq2==0)
-		in_ten_qt=1;
+		in_ten_qt=1;											//if all processes are processed so that idle is not printed 
 	}
 	for(i=0;i<=10;i++)											//each queue has time quantum of 10 seconds												
 	{
@@ -362,7 +402,7 @@ void priority_scheduling()
 				break;											//switch to queue_thr
 			}
 		}
-																//else continue processing of queue_two
+		//else continue processing of queue_two
 		{	
 			time_count++;										//counting time quantum for queue_two
 			ready_queue();										//adding processes in ready queues
@@ -371,6 +411,7 @@ void priority_scheduling()
 			sort_queue(ready_q2,r2+1);							//sorting ready_q2 according to priority, since queue_two undergoes PRIORITY SCHEDULING 
 			if(((ready_q2+0)->pid)!=0)							//if ready queue is not empty
 			{
+				wait_time();
 				printf("\t         %d",((ready_q2+0)->pid));	//printing current process under processing
 				(ready_q2+0)->burst_time--;						//decrementing the value of burst_time after processing
 				if(((ready_q2+0)->burst_time)==0)				//checking if burst_time of 0,if 0 then remove the process from ready_q2
@@ -398,9 +439,9 @@ void first_come_first_serve()
 	for(j=0;j<q3;j++)											//within time_quantum of queue_thr or not
 	{
 		if((((queue_thr+j)->arrival_time)>=(temp_tc))&&((((queue_thr+j)->arrival_time)<(temp_tc+10))))
-		in_ten_qt++;
+		in_ten_qt++;											//if any process will come in current time quantum, value increases
 		if(qq3==0)
-		in_ten_qt=1;
+		in_ten_qt=1;											//if all processes are processed so that idle is not printed 
 	}
 	for(i=0;i<=10;i++)											//each queue has time quantum of 10 seconds
 	{
@@ -412,7 +453,7 @@ void first_come_first_serve()
 				break;											//switch to queue_one
 			}
 		}
-																//else continue processing of queue_thr
+		//else continue processing of queue_thr
 		{
 			time_count++;										//counting time quantum for queue_thr
 			ready_queue();										//adding processes to ready queues
@@ -420,6 +461,7 @@ void first_come_first_serve()
 
 			if(((ready_q3+0)->pid)!=0)							//if ready_q3 is not empty
 			{
+				wait_time();
 				printf("\t         %d",((ready_q3+0)->pid));	//printing current process under processing
 				(ready_q3+0)->burst_time--;						//decrementing the value of burst_time after processing
 				if(((ready_q3+0)->burst_time)==0)				//checking if burst_time of 0,if 0 then remove the process from ready_q3
@@ -457,8 +499,8 @@ void scheduling()
 			first_come_first_serve();
 		if((in_ten_qt==0)&&((ready_q1+0)->pid==0)&&((ready_q2+0)->pid==0)&&((ready_q3+0)->pid==0))
 		{
-			time_count++;
-			printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1);
+			time_count++;	//the value of time_count will only increase if no processes comes in queue at current time quantum...
+			printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1);//and no process is residing in ready queue
 		}
 	}while((qq1>0)||(qq2>0)||(qq3>0));							//contine switching between queues until all processes are processed
 }
