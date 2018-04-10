@@ -22,6 +22,7 @@ int turn=1,time_count=-1;				//'turn' is for checking which queue to process nex
 int r1=-1,r2=-1,r3=-1;					//time_count is variable for time(always increases)
 								//r1,r2,r3 are for index of ready_q1,ready_q2,ready_q3
 int qq1,qq2,qq3;						//this is to keep track of processes left in respective queues
+int avg=0;							//this is to store average waiting time
 int in_ten_qt;						//this is to check if any process comes in time_quantum range
 //**************************************FUNCTIONS******************************************************
 void heading();
@@ -43,6 +44,7 @@ void round_robin();					//function for round robin scheduing in queue_one
 void priority_scheduling();				//function for priority scheduling in queue_two
 void first_come_first_serve();			//function for first_come_first_serve scheduling in queue_thr
 void wait_time();						//function to claculate waiting time of processes
+void average_wait();					//function to claculate average waiting time of all processes
 void scheduling();					//function to schedule the processes
 void pop(struct processs *ready,int r);		//function to pop processes from ready queue
 void push(struct processs *ready,struct processs tempp,int r);//function to push processes in ready queue
@@ -103,9 +105,12 @@ printf("\n\t\t\t\t\t\t\t\t\t\t\t\t\tPress ENTER to continue...\n");
 	scheduling();				//TO schedule the processes, print gantt chart
 	printf("\n\t\t\t\t\t\t\t\t\t\t\t\t\tPress ENTER to display waiting time...\n");
 	getchar();
+printf("\n\tPROCESS_ID\t\tWAITING_TIME\n");
 	display_waiting_time(queue_one,q1);
 	display_waiting_time(queue_two,q2);
 	display_waiting_time(queue_thr,q3);
+	average_wait();
+	printf("\nAverage waiting time : %f ",(float)avg/n);
 }
 //******************************************************************************************************
 void heading()
@@ -214,10 +219,8 @@ void display(struct processs *pp_array,int k)
 //******************************************************************************************************
 void display_waiting_time(struct processs *pp_array,int k)
 {
-	printf("\n\tPROCESS_ID\t\tWAITING_TIME\n");
 	for(i=0;i<k;i++)
 	printf("\n\t     %d     \t\t     %d     ",((pp_array+i)->pid),((pp_array+i)->waiting_time));
-	printf("\n");
 }
 //******************************************************************************************************
 void queue_size()
@@ -303,22 +306,50 @@ void wait_time()
 	for(j=0;j<=r1;j++)
 	{
 		if(((queue_one+i)->pid)==((ready_q1+j)->pid))
-		if(j!=0)
-		(queue_one+i)->waiting_time++;
+		{
+			if(j!=0)
+			(queue_one+i)->waiting_time++;
+			if((j==0)&&(turn!=1))
+			(queue_one+i)->waiting_time++;
+		}
 	}
 	for(i=0;i<q2;i++)
 	for(j=0;j<=r2;j++)
 	{
 		if(((queue_two+i)->pid)==((ready_q2+j)->pid))
-		if((j!=0))
-		(queue_two+i)->waiting_time++;
+		{
+			if(j!=0)
+			(queue_two+i)->waiting_time++;
+			if((j==0)&&(turn!=2))
+			(queue_two+i)->waiting_time++;
+		}
 	}
 	for(i=0;i<q3;i++)
 	for(j=0;j<=r3;j++)
 	{
 		if(((queue_thr+i)->pid)==((ready_q3+j)->pid))
-		if(j!=0)
-		(queue_thr+i)->waiting_time++;
+		{
+			if(j!=0)
+			(queue_thr+i)->waiting_time++;
+			if((j==0)&&(turn!=3))
+			(queue_thr+i)->waiting_time++;
+		}
+	}
+}
+//******************************************************************************************************
+void average_wait()
+{
+	for(i=0;i<q1;i++)
+	{
+		avg+=(queue_one+i)->waiting_time;
+	}
+	for(i=0;i<q2;i++)
+	{
+		avg+=(queue_two+i)->waiting_time;
+	}
+	for(i=0;i<q3;i++)
+	{
+		avg+=(queue_thr+i)->waiting_time;
 	}
 }
 //******************************************************************************************************
@@ -554,4 +585,5 @@ void scheduling()
 		}
 	}while((qq1>0)||(qq2>0)||(qq3>0));//contine switching between queues until all processes are processed
 }
+
 
