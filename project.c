@@ -1,5 +1,3 @@
-
-
 #include<unistd.h>
 #include<stdio.h>
 #include<stdlib.h>
@@ -25,7 +23,7 @@ int r1=-1,r2=-1,r3=-1;					//time_count is variable for time(always increases)
 								//r1,r2,r3 are for index of ready_q1,ready_q2,ready_q3
 int qq1,qq2,qq3;						//this is to keep track of processes left in respective queues
 int avg=0;							//this is to store average waiting time
-int in_ten_qt;						//this is to check if any process comes in time_quantum range
+int in_ten_qt1,in_ten_qt2,in_ten_qt3;	//this is to check if any process comes in time_quantum range
 //**************************************FUNCTIONS******************************************************
 void heading();						//function to show a header
 void pid_assign();					//function to assign process id
@@ -186,9 +184,9 @@ void arrival_assign()
 		{
 			printf("\t     %d     \t\t     %d     \t\t     ",((p_array+i)->pid),((p_array+i)->burst_time));
 			scanf("%d",&((p_array+i)->arrival_time));		//assigning value to arrival time	
-			if(((p_array+i)->arrival_time)<0)			//constrain on input value and display error message
-			printf("\t\t\t\t\t\tARRIVAL_TIME can not be <0 !!Enter Again...\n");
-		}while(((p_array+i)->arrival_time)<0); //do while loop runs until valid input is given
+			if(((p_array+i)->arrival_time)<=0)			//constrain on input value and display error message
+			printf("\t\t\t\t\t\tARRIVAL_TIME can not be <=0 !!Enter Again...\n");
+		}while(((p_array+i)->arrival_time)<=0); //do while loop runs until valid input is given
 	}
 }
 //******************************************************************************************************
@@ -379,31 +377,32 @@ void ready_queue()
 //******************************************************************************************************
 void round_robin()
 {
-	in_ten_qt=0;						//this variable is to check if process comes to ready_q1 in...
-									//the specified quantum time of the queue_one
+	in_ten_qt1=0;						//this variable is to check if process comes to ready_q1 in...
+										//the specified quantum time of the queue_one
 	int temp_tc=time_count+1; 
-for(j=0;j<q1;j++)						//for every process in queue_one
+	for(j=0;j<q1;j++)						//for every process in queue_one
 	{
 		if((((queue_one+j)->arrival_time)>=(temp_tc))&&((((queue_one+j)->arrival_time)<(temp_tc+10))))
-		if(((ready_q1+0)->pid==0) || ((queue_one+j)->arrival_time)==0)
+		if((ready_q1+0)->pid==0)
  //if the arrival time falls in given time quantum and ready_q1 is empty
 		{
-			in_ten_qt++;			//then value of in_ten_qt is increased
+			in_ten_qt1++;			//then value of in_ten_qt is increased
 			for(i=0;i<((queue_one+j)->arrival_time)-temp_tc;i++)//print IDLE until time_count != arrival_time 
 			{
 				time_count++;
 				printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1);
 			}
 			if(qq1==0)
-			in_ten_qt=1;				//if all processes are processed so that IDLE is not printed
+			in_ten_qt1=1;				//if all processes are processed so that IDLE is not printed
 			break;					//come out of for loop after printing IDLE	 
 		}
 	}
+	temp_tc=time_count+1; 
 	int time_quantum=0;					//queue_one undergoes Round Robin, time_quantum is 4
 	for(i=0;i<=10;i++)					// each queue has time quantum of 10 seconds
 	{
-		if(qq1==0 || in_ten_qt==0)			//checking if processes are left in ready_q1 or not, or...
-		{							//if a process will come in ready_q1 within 10 time_quantum
+		if(qq1==0 || in_ten_qt1==0)			//checking if processes are left in ready_q1 or not, or...
+		{								//if a process will come in ready_q1 within 10 time_quantum
 			if((ready_q1+0)->pid==0)
 			{	turn=2;				//if no process is left in ready_q1 then switch the turn to queue_two
 				break;													
@@ -451,29 +450,30 @@ for(j=0;j<q1;j++)						//for every process in queue_one
 //******************************************************************************************************
 void priority_scheduling()
 {
-	in_ten_qt=0;						//this variable is to check if process comes to ready_q1 in...
+	in_ten_qt2=0;						//this variable is to check if process comes to ready_q1 in...
 									//the specified quantum time of the queue_one
 	int temp_tc=time_count+1;
 	for(j=0;j<q2;j++)						//for every process in queue_two
 	{
 		if((((queue_two+j)->arrival_time)>=(temp_tc))&&((((queue_two+j)->arrival_time)<(temp_tc+10))))
-		if(((ready_q2+0)->pid==0) || ((queue_two+j)->arrival_time)==0)
+		if((ready_q2+0)->pid==0)
 					//if the arrival time falls in given time quantum and ready_q2 is empty
 		{
-			in_ten_qt++;					//then value of in_ten_qt is increased
+			in_ten_qt2++;					//then value of in_ten_qt is increased
 			for(i=0;i<((queue_two+j)->arrival_time)-temp_tc;i++)//print IDLE until time_count != arrival_time
 			{
 				time_count++;
 				printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1);
 			}
 			if(qq2==0)
-			in_ten_qt=1;				//if all processes are processed so that IDLE is not printed
+			in_ten_qt2=1;				//if all processes are processed so that IDLE is not printed
 			break;					//come out of for loop	 
 		}	
-}
+	}
+	temp_tc=time_count+1; 
 	for(i=0;i<=10;i++)					//each queue has time quantum of 10 seconds												
 	{
-		if(qq2==0 || in_ten_qt==0)			//checking if there are processes remaining in ready_q2 or...
+		if(qq2==0 || in_ten_qt2==0)			//checking if there are processes remaining in ready_q2 or...
 		{							//if any process will come in ready_q2 within 10 time_quantum
 			if((ready_q2+0)->pid==0)
 			{	turn=3;				//if no process remaining switch to queue_thr
@@ -512,27 +512,29 @@ void priority_scheduling()
 //******************************************************************************************************
 void first_come_first_serve()
 {
-	in_ten_qt=0;						//this variable is to check if process comes to ready_q3 in...
-									//the specified quantum time of the queue_thr
+	in_ten_qt3=0;						//this variable is to check if process comes to ready_q3 in...
+										//the specified quantum time of the queue_thr
 	int temp_tc=time_count+1; 
 	for(j=0;j<q3;j++)						//for every process in queue_thr
 	{
 		if((((queue_thr+j)->arrival_time)>=(temp_tc))&&((((queue_thr+j)->arrival_time)<(temp_tc+10))))
-		if(((ready_q3+0)->pid==0) || ((queue_thr+j)->arrival_time)==0)		{
-			in_ten_qt++;				//if any process will come in current time quantum, value increases
+		if((ready_q3+0)->pid==0)
+		{
+			in_ten_qt3++;				//if any process will come in current time quantum, value increases
 			for(i=0;i<((queue_thr+j)->arrival_time)-temp_tc;i++)//print IDLE until time_count != arrival_time
 			{
 				time_count++;
 				printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1);
 			}
 			if(qq3==0)
-			in_ten_qt=1;
+			in_ten_qt3=1;
 			break;						//if all processes are processed so that idle is not printed 
 		}	
-}
+	}
+	temp_tc=time_count+1; 
 	for(i=0;i<=10;i++)				//each queue has time quantum of 10 seconds
 	{
-		if(qq3==0 || in_ten_qt==0)		//checking if there are processes remaining in ready_q3 or 
+		if(qq3==0 || in_ten_qt3==0)		//checking if there are processes remaining in ready_q3 or 
 		{						//if any process will come in ready_q3 within 10 time_quantum
 			if((ready_q3+0)->pid==0)
 			{
@@ -584,12 +586,15 @@ void scheduling()
 			priority_scheduling();
 		if(turn==3)					//if turn is of queue_thr
 			first_come_first_serve();
-		if((in_ten_qt==0)&&((ready_q1+0)->pid==0)&&((ready_q2+0)->pid==0)&&((ready_q3+0)->pid==0))
+		if((in_ten_qt1==0)&&(in_ten_qt2==0)&&(in_ten_qt3==0)&&((ready_q1+0)->pid==0)&&((ready_q2+0)->pid==0)&&((ready_q3+0)->pid==0))
 		{
-			time_count++;//the value of time_count will only increase if no processes comes in queue at current time quantum...
-			printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1); //and no process is residing in ready queue
+			for(i=0;i<10;i++){
+				if((qq1==0)&&(qq2==0)&&(qq3==0))
+				break;
+				time_count++;//the value of time_count will only increase if no processes comes in queue at current time quantum...
+				printf("\n\t   %d-%d     \t\tIDLE",time_count,time_count+1); //and no process is residing in ready queue
+			}
+			
 		}
 	}while((qq1>0)||(qq2>0)||(qq3>0));//contine switching between queues until all processes are processed
 }
-
-
